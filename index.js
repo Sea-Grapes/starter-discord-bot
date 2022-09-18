@@ -1,10 +1,9 @@
 
-// const { clientId, guildId, token, publicKey } = require('./config.json');
 require('dotenv').config()
-const APPLICATION_ID = process.env.APPLICATION_ID 
-const TOKEN = process.env.TOKEN 
-const PUBLIC_KEY = process.env.PUBLIC_KEY || 'not set'
-const GUILD_ID = process.env.GUILD_ID 
+const appId = process.env.APPLICATION_ID;
+const token = process.env.TOKEN;
+const publicKey = process.env.PUBLIC_KEY;
+const guildId = process.env.GUILD_ID;
 
 
 const axios = require('axios')
@@ -13,28 +12,27 @@ const { InteractionType, InteractionResponseType, verifyKeyMiddleware } = requir
 
 
 const app = express();
-// app.use(bodyParser.json());
 
-const discord_api = axios.create({
+const discord = axios.create({
   baseURL: 'https://discord.com/api/',
   timeout: 3000,
   headers: {
-	"Access-Control-Allow-Origin": "*",
-	"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-	"Access-Control-Allow-Headers": "Authorization",
-	"Authorization": `Bot ${TOKEN}`
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
+    "Access-Control-Allow-Headers": "Authorization",
+    "Authorization": `Bot ${token}`
   }
 });
 
 
 
 
-app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async (req, res) => {
+app.post('/interactions', verifyKeyMiddleware(publicKey), async (req, res) => {
   const interaction = req.body;
 
   if (interaction.type === InteractionType.APPLICATION_COMMAND) {
     console.log(interaction.data.name)
-    if(interaction.data.name == 'yo'){
+    if (interaction.data.name == 'yo') {
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
@@ -43,26 +41,23 @@ app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async (req, res) => {
       });
     }
 
-    if(interaction.data.name == 'dm'){
-      // https://discord.com/developers/docs/resources/user#create-dm
-      let c = (await discord_api.post(`/users/@me/channels`,{
+    if (interaction.data.name == 'dm') {
+      let c = (await discord.post(`/users/@me/channels`, {
         recipient_id: interaction.member.user.id
       })).data
-      try{
-        // https://discord.com/developers/docs/resources/channel#create-message
-        let res = await discord_api.post(`/channels/${c.id}/messages`,{
-          content:'Hi!',
+      try {
+        let res = await discord.post(`/channels/${c.id}/messages`, {
+          content: 'Hi!',
         })
         console.log(res.data)
-      }catch(e){
+      } catch (e) {
         console.log(e)
       }
 
       return res.send({
-        // https://discord.com/developers/docs/interactions/receiving-and-responding#responding-to-an-interaction
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data:{
-          content:'Sent a dm!'
+        data: {
+          content: 'Sent a dm!'
         }
       });
     }
@@ -72,8 +67,8 @@ app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async (req, res) => {
 
 
 
-app.get('/register_commands', async (req,res) =>{
-  let slash_commands = [
+app.get('/register_commands', async (req, res) => {
+  const registerCommands = [
     {
       "name": "yo",
       "description": "replies with Yo!",
@@ -85,16 +80,14 @@ app.get('/register_commands', async (req,res) =>{
       "options": []
     }
   ]
-  try
-  {
-    // api docs - https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    let discord_response = await discord_api.put(
-      `/applications/${APPLICATION_ID}/guilds/${GUILD_ID}/commands`,
-      slash_commands
+  try {
+    let response = await discord.put(
+      `/applications/${appId}/guilds/${guildId}/commands`,
+      registerCommands
     )
-    console.log(discord_response.data)
+    console.log(response.data)
     return res.send('commands have been registered')
-  }catch(e){
+  } catch (e) {
     console.error(e.code)
     console.error(e.response?.data)
     return res.send(`${e.code} error from discord`)
@@ -102,7 +95,7 @@ app.get('/register_commands', async (req,res) =>{
 })
 
 
-app.get('/', async (req,res) =>{
+app.get('/', async (req, res) => {
   return res.send('Follow documentation ')
 })
 
