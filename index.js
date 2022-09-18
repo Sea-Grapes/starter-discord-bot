@@ -65,7 +65,7 @@ app.post('/interactions', verifyKeyMiddleware(publicKey), async (req, res) => {
 
 
 
-app.get('/register_commands', async (req, res) => {
+app.get('/refresh', async (req, res) => {
   const registerCommands = [
     {
       "name": "yo",
