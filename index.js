@@ -31,7 +31,6 @@ app.post('/interactions', verifyKeyMiddleware(publicKey), async (req, res) => {
   const interaction = req.body;
 
   if (interaction.type === InteractionType.APPLICATION_COMMAND) {
-    console.log(interaction.data.name)
     if (interaction.data.name == 'yo') {
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -49,7 +48,6 @@ app.post('/interactions', verifyKeyMiddleware(publicKey), async (req, res) => {
         let res = await discord.post(`/channels/${c.id}/messages`, {
           content: 'Hi!',
         })
-        console.log(res.data)
       } catch (e) {
         console.log(e)
       }
@@ -85,11 +83,9 @@ app.get('/register_commands', async (req, res) => {
       `/applications/${appId}/guilds/${guildId}/commands`,
       registerCommands
     )
-    console.log(response.data)
     return res.send('commands have been registered')
   } catch (e) {
-    console.error(e.code)
-    console.error(e.response?.data)
+    console.log(e)
     return res.send(`${e.code} error from discord`)
   }
 })
